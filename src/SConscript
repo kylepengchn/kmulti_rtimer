@@ -5,6 +5,6 @@ cwd = GetCurrentDir()
 src	= Glob('*.c')
 path = [cwd]
 
-group = DefineGroup('multi_rtimer', src, depend = ['PKG_USING_MULTI_RTIMER'], CPPPATH = path)
+group = DefineGroup('kmulti_rtimer', src, depend = ['PKG_USING_KMULTI_RTIMER'], CPPPATH = path)
 
 Return('group')

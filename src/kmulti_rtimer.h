@@ -8,8 +8,8 @@
  * 2021-12-25     kyle      the first version
  */
 
-#ifndef __MULTI_RTIMER_H__
-#define __MULTI_RTIMER_H__
+#ifndef __KMULTI_RTIMER_H__
+#define __KMULTI_RTIMER_H__
 
 #include <rtconfig.h>
 #include <rtdef.h>
@@ -23,7 +23,7 @@ extern "C" {
 /**
  * timer structure
  */
-struct multi_rtimer
+struct kmulti_rtimer
 {
     struct rt_object parent;                            /**< inherit from rt_object */
 
@@ -35,7 +35,7 @@ struct multi_rtimer
     rt_tick_t        init_tick;                         /**< timer timeout tick */
     rt_tick_t        timeout_tick;                      /**< timeout tick */
 };
-typedef struct multi_rtimer *multi_rtimer_t;
+typedef struct kmulti_rtimer *kmulti_rtimer_t;
 
 
 rt_tick_t rtimer_tick_get(void);
@@ -43,31 +43,31 @@ void rtimer_tick_set(rt_tick_t tick);
 void rtimer_tick_increase(void);
 rt_tick_t  rtimer_tick_from_millisecond(rt_int32_t ms);
 
-void rt_system_multi_rtimer_init(void);
+void rt_system_kmulti_rtimer_init(void);
 
-void multi_rtimer_init(multi_rtimer_t  timer,
+void kmulti_rtimer_init(kmulti_rtimer_t  timer,
                    const char *name,
                    void (*timeout)(void *parameter),
                    void       *parameter,
                    rt_tick_t   time,
                    rt_uint8_t  flag);
-rt_err_t multi_rtimer_detach(multi_rtimer_t timer);
-multi_rtimer_t multi_rtimer_create(const char *name,
+rt_err_t kmulti_rtimer_detach(kmulti_rtimer_t timer);
+kmulti_rtimer_t kmulti_rtimer_create(const char *name,
                            void (*timeout)(void *parameter),
                            void       *parameter,
                            rt_tick_t   time,
                            rt_uint8_t  flag);
-rt_err_t multi_rtimer_delete(multi_rtimer_t timer);
-rt_err_t multi_rtimer_start(multi_rtimer_t timer);
-rt_err_t multi_rtimer_stop(multi_rtimer_t timer);
-rt_err_t multi_rtimer_control(multi_rtimer_t timer, int cmd, void *arg);
+rt_err_t kmulti_rtimer_delete(kmulti_rtimer_t timer);
+rt_err_t kmulti_rtimer_start(kmulti_rtimer_t timer);
+rt_err_t kmulti_rtimer_stop(kmulti_rtimer_t timer);
+rt_err_t kmulti_rtimer_control(kmulti_rtimer_t timer, int cmd, void *arg);
 
-rt_tick_t multi_rtimer_next_timeout_tick(void);
-void multi_rtimer_check(void);
+rt_tick_t kmulti_rtimer_next_timeout_tick(void);
+void kmulti_rtimer_check(void);
 
 #ifdef RT_USING_HOOK
-void multi_rtimer_enter_sethook(void (*hook)(struct multi_rtimer *timer));
-void multi_rtimer_exit_sethook(void (*hook)(struct multi_rtimer *timer));
+void kmulti_rtimer_enter_sethook(void (*hook)(struct kmulti_rtimer *timer));
+void kmulti_rtimer_exit_sethook(void (*hook)(struct kmulti_rtimer *timer));
 #endif
 
 

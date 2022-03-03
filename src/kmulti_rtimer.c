@@ -8,18 +8,18 @@
  * 2021-12-25     kyle      the first version
  */
 
-#include <multi_rtimer.h>
+#include <kmulti_rtimer.h>
 #include <rtthread.h>
 #include <rthw.h>
 
 /* hard timer list */
-static rt_list_t multi_rtimer_list[RT_TIMER_SKIP_LIST_LEVEL];
+static rt_list_t kmulti_rtimer_list[RT_TIMER_SKIP_LIST_LEVEL];
 
 #ifdef RT_USING_HOOK
 extern void (*rt_object_take_hook)(struct rt_object *object);
 extern void (*rt_object_put_hook)(struct rt_object *object);
-static void (*multi_rtimer_enter_hook)(struct multi_rtimer *timer);
-static void (*multi_rtimer_exit_hook)(struct multi_rtimer *timer);
+static void (*kmulti_rtimer_enter_hook)(struct kmulti_rtimer *timer);
+static void (*kmulti_rtimer_exit_hook)(struct kmulti_rtimer *timer);
 
 /**
  * @addtogroup Hook
@@ -33,9 +33,9 @@ static void (*multi_rtimer_exit_hook)(struct multi_rtimer *timer);
  *
  * @param hook the hook function
  */
-void multi_rtimer_enter_sethook(void (*hook)(struct multi_rtimer *timer))
+void kmulti_rtimer_enter_sethook(void (*hook)(struct kmulti_rtimer *timer))
 {
-    multi_rtimer_enter_hook = hook;
+    kmulti_rtimer_enter_hook = hook;
 }
 
 /**
@@ -44,15 +44,15 @@ void multi_rtimer_enter_sethook(void (*hook)(struct multi_rtimer *timer))
  *
  * @param hook the hook function
  */
-void multi_rtimer_exit_sethook(void (*hook)(struct multi_rtimer *timer))
+void kmulti_rtimer_exit_sethook(void (*hook)(struct kmulti_rtimer *timer))
 {
-    multi_rtimer_exit_hook = hook;
+    kmulti_rtimer_exit_hook = hook;
 }
 
 /**@}*/
 #endif
 
-static void _multi_rtimer_init(multi_rtimer_t timer,
+static void _kmulti_rtimer_init(kmulti_rtimer_t timer,
                            void (*timeout)(void *parameter),
                            void      *parameter,
                            rt_tick_t  time,
@@ -80,9 +80,9 @@ static void _multi_rtimer_init(multi_rtimer_t timer,
 }
 
 /* the fist timer always in the last row */
-static rt_tick_t multi_rtimer_list_next_timeout(rt_list_t timer_list[])
+static rt_tick_t kmulti_rtimer_list_next_timeout(rt_list_t timer_list[])
 {
-    struct multi_rtimer *timer;
+    struct kmulti_rtimer *timer;
     register rt_base_t level;
     rt_tick_t timeout_tick = RT_TICK_MAX;
 
@@ -92,7 +92,7 @@ static rt_tick_t multi_rtimer_list_next_timeout(rt_list_t timer_list[])
     if (!rt_list_isempty(&timer_list[RT_TIMER_SKIP_LIST_LEVEL - 1]))
     {
         timer = rt_list_entry(timer_list[RT_TIMER_SKIP_LIST_LEVEL - 1].next,
-                              struct multi_rtimer, row[RT_TIMER_SKIP_LIST_LEVEL - 1]);
+                              struct kmulti_rtimer, row[RT_TIMER_SKIP_LIST_LEVEL - 1]);
         timeout_tick = timer->timeout_tick;
     }
 
@@ -102,7 +102,7 @@ static rt_tick_t multi_rtimer_list_next_timeout(rt_list_t timer_list[])
     return timeout_tick;
 }
 
-rt_inline void _multi_rtimer_remove(multi_rtimer_t timer)
+rt_inline void _kmulti_rtimer_remove(kmulti_rtimer_t timer)
 {
     int i;
 
@@ -113,7 +113,7 @@ rt_inline void _multi_rtimer_remove(multi_rtimer_t timer)
 }
 
 #if RT_DEBUG_TIMER
-static int multi_rtimer_count_height(struct multi_rtimer *timer)
+static int kmulti_rtimer_count_height(struct kmulti_rtimer *timer)
 {
     int i, cnt = 0;
 
@@ -125,7 +125,7 @@ static int multi_rtimer_count_height(struct multi_rtimer *timer)
     return cnt;
 }
 
-void multi_rtimer_dump(rt_list_t timer_heads[])
+void kmulti_rtimer_dump(rt_list_t timer_heads[])
 {
     rt_list_t *list;
 
@@ -133,10 +133,10 @@ void multi_rtimer_dump(rt_list_t timer_heads[])
          list != &timer_heads[RT_TIMER_SKIP_LIST_LEVEL - 1];
          list = list->next)
     {
-        struct multi_rtimer *timer = rt_list_entry(list,
-                                               struct multi_rtimer,
+        struct kmulti_rtimer *timer = rt_list_entry(list,
+                                               struct kmulti_rtimer,
                                                row[RT_TIMER_SKIP_LIST_LEVEL - 1]);
-        rt_kprintf("%d", multi_rtimer_count_height(timer));
+        rt_kprintf("%d", kmulti_rtimer_count_height(timer));
     }
     rt_kprintf("\n");
 }
@@ -159,7 +159,7 @@ void multi_rtimer_dump(rt_list_t timer_heads[])
  * @param time the tick of timer
  * @param flag the flag of timer
  */
-void multi_rtimer_init(multi_rtimer_t  timer,
+void kmulti_rtimer_init(kmulti_rtimer_t  timer,
                    const char *name,
                    void (*timeout)(void *parameter),
                    void       *parameter,
@@ -172,9 +172,9 @@ void multi_rtimer_init(multi_rtimer_t  timer,
     /* timer object initialization */
     rt_object_init((rt_object_t)timer, RT_Object_Class_Timer, name);
 
-    _multi_rtimer_init(timer, timeout, parameter, time, flag);
+    _kmulti_rtimer_init(timer, timeout, parameter, time, flag);
 }
-RTM_EXPORT(multi_rtimer_init);
+RTM_EXPORT(kmulti_rtimer_init);
 
 /**
  * This function will detach a timer from timer management.
@@ -183,7 +183,7 @@ RTM_EXPORT(multi_rtimer_init);
  *
  * @return the operation status, RT_EOK on OK; RT_ERROR on error
  */
-rt_err_t multi_rtimer_detach(multi_rtimer_t timer)
+rt_err_t kmulti_rtimer_detach(kmulti_rtimer_t timer)
 {
     register rt_base_t level;
 
@@ -195,7 +195,7 @@ rt_err_t multi_rtimer_detach(multi_rtimer_t timer)
     /* disable interrupt */
     level = rt_hw_interrupt_disable();
 
-    _multi_rtimer_remove(timer);
+    _kmulti_rtimer_remove(timer);
     /* stop timer */
     timer->parent.flag &= ~RT_TIMER_FLAG_ACTIVATED;
 
@@ -206,7 +206,7 @@ rt_err_t multi_rtimer_detach(multi_rtimer_t timer)
 
     return RT_EOK;
 }
-RTM_EXPORT(multi_rtimer_detach);
+RTM_EXPORT(kmulti_rtimer_detach);
 
 #ifdef RT_USING_HEAP
 /**
@@ -220,26 +220,26 @@ RTM_EXPORT(multi_rtimer_detach);
  *
  * @return the created timer object
  */
-multi_rtimer_t multi_rtimer_create(const char *name,
+kmulti_rtimer_t kmulti_rtimer_create(const char *name,
                            void (*timeout)(void *parameter),
                            void       *parameter,
                            rt_tick_t   time,
                            rt_uint8_t  flag)
 {
-    struct multi_rtimer *timer;
+    struct kmulti_rtimer *timer;
 
     /* allocate a object */
-    timer = (struct multi_rtimer *)rt_object_allocate(RT_Object_Class_Timer, name);
+    timer = (struct kmulti_rtimer *)rt_object_allocate(RT_Object_Class_Timer, name);
     if (timer == RT_NULL)
     {
         return RT_NULL;
     }
 
-    _multi_rtimer_init(timer, timeout, parameter, time, flag);
+    _kmulti_rtimer_init(timer, timeout, parameter, time, flag);
 
     return timer;
 }
-RTM_EXPORT(multi_rtimer_create);
+RTM_EXPORT(kmulti_rtimer_create);
 
 /**
  * This function will delete a timer and release timer memory
@@ -248,7 +248,7 @@ RTM_EXPORT(multi_rtimer_create);
  *
  * @return the operation status, RT_EOK on OK; RT_ERROR on error
  */
-rt_err_t multi_rtimer_delete(multi_rtimer_t timer)
+rt_err_t kmulti_rtimer_delete(kmulti_rtimer_t timer)
 {
     register rt_base_t level;
 
@@ -260,7 +260,7 @@ rt_err_t multi_rtimer_delete(multi_rtimer_t timer)
     /* disable interrupt */
     level = rt_hw_interrupt_disable();
 
-    _multi_rtimer_remove(timer);
+    _kmulti_rtimer_remove(timer);
     /* stop timer */
     timer->parent.flag &= ~RT_TIMER_FLAG_ACTIVATED;
 
@@ -271,7 +271,7 @@ rt_err_t multi_rtimer_delete(multi_rtimer_t timer)
 
     return RT_EOK;
 }
-RTM_EXPORT(multi_rtimer_delete);
+RTM_EXPORT(kmulti_rtimer_delete);
 #endif
 
 /**
@@ -281,7 +281,7 @@ RTM_EXPORT(multi_rtimer_delete);
  *
  * @return the operation status, RT_EOK on OK, -RT_ERROR on error
  */
-rt_err_t multi_rtimer_start(multi_rtimer_t timer)
+rt_err_t kmulti_rtimer_start(kmulti_rtimer_t timer)
 {
     unsigned int row_lvl;
     rt_list_t *timer_list;
@@ -297,7 +297,7 @@ rt_err_t multi_rtimer_start(multi_rtimer_t timer)
     /* stop timer firstly */
     level = rt_hw_interrupt_disable();
     /* remove timer from list */
-    _multi_rtimer_remove(timer);
+    _kmulti_rtimer_remove(timer);
     /* change status of timer */
     timer->parent.flag &= ~RT_TIMER_FLAG_ACTIVATED;
 
@@ -312,7 +312,7 @@ rt_err_t multi_rtimer_start(multi_rtimer_t timer)
 
     {
         /* insert timer to system timer list */
-        timer_list = multi_rtimer_list;
+        timer_list = kmulti_rtimer_list;
     }
 
     row_head[0]  = &timer_list[0];
@@ -321,11 +321,11 @@ rt_err_t multi_rtimer_start(multi_rtimer_t timer)
         for (; row_head[row_lvl] != timer_list[row_lvl].prev;
              row_head[row_lvl]  = row_head[row_lvl]->next)
         {
-            struct multi_rtimer *t;
+            struct kmulti_rtimer *t;
             rt_list_t *p = row_head[row_lvl]->next;
 
             /* fix up the entry pointer */
-            t = rt_list_entry(p, struct multi_rtimer, row[row_lvl]);
+            t = rt_list_entry(p, struct kmulti_rtimer, row[row_lvl]);
 
             /* If we have two timers that timeout at the same time, it's
              * preferred that the timer inserted early get called early.
@@ -373,7 +373,7 @@ rt_err_t multi_rtimer_start(multi_rtimer_t timer)
 
     return RT_EOK;
 }
-RTM_EXPORT(multi_rtimer_start);
+RTM_EXPORT(kmulti_rtimer_start);
 
 /**
  * This function will stop the timer
@@ -382,7 +382,7 @@ RTM_EXPORT(multi_rtimer_start);
  *
  * @return the operation status, RT_EOK on OK, -RT_ERROR on error
  */
-rt_err_t multi_rtimer_stop(multi_rtimer_t timer)
+rt_err_t kmulti_rtimer_stop(kmulti_rtimer_t timer)
 {
     register rt_base_t level;
 
@@ -398,7 +398,7 @@ rt_err_t multi_rtimer_stop(multi_rtimer_t timer)
     /* disable interrupt */
     level = rt_hw_interrupt_disable();
 
-    _multi_rtimer_remove(timer);
+    _kmulti_rtimer_remove(timer);
     /* change status */
     timer->parent.flag &= ~RT_TIMER_FLAG_ACTIVATED;
 
@@ -407,7 +407,7 @@ rt_err_t multi_rtimer_stop(multi_rtimer_t timer)
 
     return RT_EOK;
 }
-RTM_EXPORT(multi_rtimer_stop);
+RTM_EXPORT(kmulti_rtimer_stop);
 
 /**
  * This function will get or set some options of the timer
@@ -418,7 +418,7 @@ RTM_EXPORT(multi_rtimer_stop);
  *
  * @return RT_EOK
  */
-rt_err_t multi_rtimer_control(multi_rtimer_t timer, int cmd, void *arg)
+rt_err_t kmulti_rtimer_control(kmulti_rtimer_t timer, int cmd, void *arg)
 {
     register rt_base_t level;
 
@@ -465,7 +465,7 @@ rt_err_t multi_rtimer_control(multi_rtimer_t timer, int cmd, void *arg)
 
     return RT_EOK;
 }
-RTM_EXPORT(multi_rtimer_control);
+RTM_EXPORT(kmulti_rtimer_control);
 
 /**
  * This function will check timer list, if a timeout event happens, the
@@ -473,9 +473,9 @@ RTM_EXPORT(multi_rtimer_control);
  *
  * @note this function shall be invoked in operating system timer interrupt.
  */
-void multi_rtimer_check(void)
+void kmulti_rtimer_check(void)
 {
-    struct multi_rtimer *t;
+    struct kmulti_rtimer *t;
     rt_tick_t current_tick;
     register rt_base_t level;
     rt_list_t list;
@@ -489,10 +489,10 @@ void multi_rtimer_check(void)
     /* disable interrupt */
     level = rt_hw_interrupt_disable();
 
-    while (!rt_list_isempty(&multi_rtimer_list[RT_TIMER_SKIP_LIST_LEVEL - 1]))
+    while (!rt_list_isempty(&kmulti_rtimer_list[RT_TIMER_SKIP_LIST_LEVEL - 1]))
     {
-        t = rt_list_entry(multi_rtimer_list[RT_TIMER_SKIP_LIST_LEVEL - 1].next,
-                          struct multi_rtimer, row[RT_TIMER_SKIP_LIST_LEVEL - 1]);
+        t = rt_list_entry(kmulti_rtimer_list[RT_TIMER_SKIP_LIST_LEVEL - 1].next,
+                          struct kmulti_rtimer, row[RT_TIMER_SKIP_LIST_LEVEL - 1]);
 
         /*
          * It supposes that the new tick shall less than the half duration of
@@ -500,10 +500,10 @@ void multi_rtimer_check(void)
          */
         if ((current_tick - t->timeout_tick) < RT_TICK_MAX / 2)
         {
-            RT_OBJECT_HOOK_CALL(multi_rtimer_enter_hook, (t));
+            RT_OBJECT_HOOK_CALL(kmulti_rtimer_enter_hook, (t));
 
             /* remove timer from timer list firstly */
-            _multi_rtimer_remove(t);
+            _kmulti_rtimer_remove(t);
             if (!(t->parent.flag & RT_TIMER_FLAG_PERIODIC))
             {
                 t->parent.flag &= ~RT_TIMER_FLAG_ACTIVATED;
@@ -516,7 +516,7 @@ void multi_rtimer_check(void)
             /* re-get tick */
             current_tick = rtimer_tick_get();
 
-            RT_OBJECT_HOOK_CALL(multi_rtimer_exit_hook, (t));
+            RT_OBJECT_HOOK_CALL(kmulti_rtimer_exit_hook, (t));
             RT_DEBUG_LOG(RT_DEBUG_TIMER, ("current tick: %d\n", current_tick));
 
             /* Check whether the timer object is detached or started again */
@@ -530,7 +530,7 @@ void multi_rtimer_check(void)
             {
                 /* start it */
                 t->parent.flag &= ~RT_TIMER_FLAG_ACTIVATED;
-                multi_rtimer_start(t);
+                kmulti_rtimer_start(t);
             }
         }
         else break;
@@ -547,23 +547,23 @@ void multi_rtimer_check(void)
  *
  * @return the next timeout tick in the system
  */
-rt_tick_t multi_rtimer_next_timeout_tick(void)
+rt_tick_t kmulti_rtimer_next_timeout_tick(void)
 {
-    return multi_rtimer_list_next_timeout(multi_rtimer_list);
+    return kmulti_rtimer_list_next_timeout(kmulti_rtimer_list);
 }
 
 /**
- * @ingroup multi_rtimer_init
+ * @ingroup kmulti_rtimer_init
  *
  * This function will initialize multi timer
  */
-void rt_system_multi_rtimer_init(void)
+void rt_system_kmulti_rtimer_init(void)
 {
     int i;
 
-    for (i = 0; i < sizeof(multi_rtimer_list) / sizeof(multi_rtimer_list[0]); i++)
+    for (i = 0; i < sizeof(kmulti_rtimer_list) / sizeof(kmulti_rtimer_list[0]); i++)
     {
-        rt_list_init(multi_rtimer_list + i);
+        rt_list_init(kmulti_rtimer_list + i);
     }
 }
 

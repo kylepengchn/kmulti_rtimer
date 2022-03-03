@@ -8,7 +8,7 @@
  * 2021-12-25     kyle      the first version
  */
 
-#include <multi_rtimer.h>
+#include <kmulti_rtimer.h>
 #include <rtdevice.h>
 
 #define DBG_TAG              "rtimer"
@@ -54,7 +54,7 @@ void rtimer_tick_increase(void)
     ++ rtimer_tick;
 
     /* check timer */
-    multi_rtimer_check();
+    kmulti_rtimer_check();
 }
 
 /**
@@ -97,7 +97,7 @@ static int rtimer_port_init(void)
 {
     rt_err_t ret = RT_EOK;
 
-    rt_system_multi_rtimer_init();
+    rt_system_kmulti_rtimer_init();
 
     rt_device_t hw_dev = RT_NULL;
     rt_uint32_t freq = 60000000;
@@ -105,10 +105,10 @@ static int rtimer_port_init(void)
     rt_hwtimerval_t timeout_s = {.sec = 0, .usec = RTIMER_CHECK_PERIOD};
 
     /* find dev */
-    hw_dev = rt_device_find(PKG_MULTI_TIMER_HWTIMER_DEV_NAME);
+    hw_dev = rt_device_find(PKG_KMULTI_RTIMER_HWTIMER_DEV_NAME);
     if (!hw_dev)
     {
-        LOG_E("cant`t find %s device", PKG_MULTI_TIMER_HWTIMER_DEV_NAME);
+        LOG_E("cant`t find %s device", PKG_KMULTI_RTIMER_HWTIMER_DEV_NAME);
         return -RT_ERROR;
     }
     
@@ -116,7 +116,7 @@ static int rtimer_port_init(void)
     ret = rt_device_open(hw_dev, RT_DEVICE_OFLAG_RDWR);
     if (ret != RT_EOK)
     {
-        LOG_E("open %s device failed", PKG_MULTI_TIMER_HWTIMER_DEV_NAME);
+        LOG_E("open %s device failed", PKG_KMULTI_RTIMER_HWTIMER_DEV_NAME);
         return ret;
     }
 
@@ -127,7 +127,7 @@ static int rtimer_port_init(void)
     ret = rt_device_control(hw_dev, HWTIMER_CTRL_FREQ_SET, &freq);
     if (ret != RT_EOK)
     {
-        LOG_E("set %s device freq failed", PKG_MULTI_TIMER_HWTIMER_DEV_NAME);
+        LOG_E("set %s device freq failed", PKG_KMULTI_RTIMER_HWTIMER_DEV_NAME);
         return ret;
     }
 
@@ -135,14 +135,14 @@ static int rtimer_port_init(void)
     ret = rt_device_control(hw_dev, HWTIMER_CTRL_MODE_SET, &mode);
     if (ret != RT_EOK)
     {
-        LOG_E("set %s device mode failed", PKG_MULTI_TIMER_HWTIMER_DEV_NAME);
+        LOG_E("set %s device mode failed", PKG_KMULTI_RTIMER_HWTIMER_DEV_NAME);
         return ret;
     }
 
     /* set timer timeout value */
     if (rt_device_write(hw_dev, 0, &timeout_s, sizeof(timeout_s)) != sizeof(timeout_s))
     {
-        LOG_E("set %s device timeout value failed", PKG_MULTI_TIMER_HWTIMER_DEV_NAME);
+        LOG_E("set %s device timeout value failed", PKG_KMULTI_RTIMER_HWTIMER_DEV_NAME);
         return -RT_ERROR;
     }
 
