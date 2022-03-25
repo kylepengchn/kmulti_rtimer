@@ -39,14 +39,14 @@ int kmulti_rtimer_sample(void)
     /* 创建定时器1  周期定时器 */
     timer1 = kmulti_rtimer_create("timer1", timeout1,
                              RT_NULL, 10,
-                             kmulti_rtimer_FLAG_PERIODIC);
+                             RT_TIMER_FLAG_PERIODIC);
     /* 启动定时器1 */
     if (timer1 != RT_NULL)
         kmulti_rtimer_start(timer1);
     /* 创建定时器2 单次定时器 */
     timer2 = kmulti_rtimer_create("timer2", timeout2,
                              RT_NULL,  30,
-                             kmulti_rtimer_FLAG_ONE_SHOT);
+                             RT_TIMER_FLAG_ONE_SHOT);
     /* 启动定时器2 */
     if (timer2 != RT_NULL)
         kmulti_rtimer_start(timer2);
